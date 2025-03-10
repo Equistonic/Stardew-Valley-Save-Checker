@@ -152,6 +152,7 @@ def read_save(file_path) -> dict:
         with open (os.path.join(file_path, 'SaveGameInfo'), 'r', encoding='utf-8-sig') as save_game_info:
             contents = save_game_info.read()
             save_game_info.close()
+            print('Successfully read save game info.')
 
 
 # [ Program Entry ]
