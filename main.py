@@ -102,8 +102,8 @@ def get_save(save_location: str) -> str: # returns path to specific save
         return ""
     
     # ask user for save
-    save = -1
-    valid_option = False
+    save: int = -1
+    valid_option: bool = False
     while not valid_option:
         try:
             save = int(input(f'Which save would you like to select? (1-{len(saves)})> '))
@@ -150,9 +150,109 @@ def read_save(file_path) -> dict:
     else:
         # read save and convert to dict
         with open (os.path.join(file_path, 'SaveGameInfo'), 'r', encoding='utf-8-sig') as save_game_info:
-            contents = save_game_info.read()
-            save_game_info.close()
-            print('Successfully read save game info.')
+            xml_contents = save_game_info.read() # read save contents
+            save_game_info.close() # close the file
+            save_contents = xmltodict.parse(xml_contents)
+            check_completion(save_contents)
+
+"""
+Preconditions: Save Data exists
+Desc: Checks the contents of the user's save data to see where they stand with the game's defined perfection goals
+Returns: Dictionary of the user's progress towards perfection (categories and completion percentages)
+"""
+def check_completion(save_data) -> dict:
+    # Completion Critiera:
+    # Produce & Forage
+        # Missing crops to sell
+    # Player has all obelisks
+        # Missing obelisks
+    # Player has golden clock
+    # Monster slayer hero
+        # All missing monsters
+    # Great Friends
+        # 8 hearts for non-dateable, 10 hearts for dateable
+    # Level 10 in every skill
+    # All stardrops found
+        # Missing stardrops
+    # Cooked every recipe
+        # Missing recipes
+    # Crafted all recipes
+        # Missing crafted items
+        # Missing recipes if need be
+    # All fish caught
+        # Missing fish
+    # All golden walnuts found
+        # Missing walnuts
+    # ==== [ Code Below ] ====
+    farmer_data: dict = save_data['Farmer']
+
+    # Farm Info
+    game_version: str = farmer_data['gameVersion']
+    name: str = farmer_data['name']
+    farm_name: str = farmer_data['farmName']
+    favorite_thing: str = farmer_data['favoriteThing']
+    year: str = farmer_data['yearForSaveGame']
+    dayOfMonth: str = farmer_data['dayOfMonthForSaveGame']
+    season_id: int = int(farmer_data['seasonForSaveGame'])
+    season: str = ''
+    if season_id == 0:
+        season = 'Spring'
+    elif season_id == 1:
+        season = 'Summer'
+    elif season_id == 2:
+        season = 'Fall'
+    elif season_id == 3:
+        season = 'Winter'
+    
+    # Stats
+    money: str = farmer_data['money']
+    total_money_earned: str = farmer_data['totalMoneyEarned']
+    stamina: str = farmer_data['stamina']
+    max_stamina: str = farmer_data['maxStamina']
+    health: str = farmer_data['health']
+    max_health: str = farmer_data['maxHealth']
+    qi_gems: str = farmer_data['qiGems']
+    position: str = ", ".join([farmer_data['Position']['X'], farmer_data['Position']['Y']])
+    time_played: float = float(farmer_data['millisecondsPlayed'])
+    time_played_formatted: str = f"{time_played // 1000 // 60} minutes"
+    backpack_level: str = int(farmer_data['maxItems']) / 12
+    
+    # Skills
+    farming_level: str = farmer_data['farmingLevel']
+    mining_level: str = farmer_data['miningLevel']
+    combat_level: str = farmer_data['combatLevel']
+    foraging_level: str = farmer_data['foragingLevel']
+    fishing_level: str = farmer_data['fishingLevel']
+
+    # Luck Stats
+
+    # Professions
+
+    # Mastery
+
+    # Display Info
+    print('\n[ Save Data ]')
+    print('============================')
+    print(f'Game Version: {game_version}')
+    print(f'Farmer Name: {name}')
+    print(f'Farm Name: {farm_name} Farm')
+    print(f'Favorite Thing: {favorite_thing}')
+    print(f'Year {year} {season} {dayOfMonth}')
+    print(f'Money: {money} | Total Money Earned: {total_money_earned}')
+    print(f'Qi Gems: {qi_gems}')
+    print(f'Stamina: {stamina} | Max Stamina: {max_stamina}')
+    print(f'Health: {health} | Max Health: {max_health}')
+    print(f'Position: {position}')
+    print(f'Time Played: {time_played_formatted}')
+    print(f'Backpack Level: {backpack_level:.0f} ({(backpack_level * 12):.0f} slots)')
+
+    print('\n[ Skills Progress ]')
+    print('============================')
+    print(f'Farming Level: {farming_level} / 15 ({int(farming_level) * 100 / 15:.2f}%)')
+    print(f'Mining Level: {mining_level} / 15 ({int(mining_level) * 100 / 15:.2f}%)')
+    print(f'Combat Level: {combat_level} / 15 ({int(combat_level) * 100 / 15:.2f}%)')
+    print(f'Foraging Level: {foraging_level} / 15 ({int(foraging_level) * 100 / 15:.2f}%)')
+    print(f'Fishing Level: {fishing_level} / 15 ({int(fishing_level) * 100 / 15:.2f}%)')
 
 
 # [ Program Entry ]
@@ -161,7 +261,7 @@ def main():
     save = get_save(saves_location)
 
     # now that we have the proper save selected, we can store it into a dictionary
-    save_data = read_save(save)
+    save_data: dict = read_save(save)
 
 if __name__ == "__main__":
     main()
